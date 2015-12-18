@@ -1,0 +1,88 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BuildDependsOn>
+      SetupNpm;
+      NpmInstall;
+      $(BuildDependsOn);
+    </BuildDependsOn>
+    <CompileDependsOn>
+      NpmBuild;
+      $(CompileDependsOn);
+    </CompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="NpmHomeProperty" Condition="'$(NpmHome)' == ''">
+    <CreateProperty Value="$([System.String]::Format('$(NpmHomeBase)', '$(NpmVersion)'))">
+      <Output PropertyName="NpmHome" TaskParameter="Value" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="NpmHomeTempProperty" DependsOnTargets="$(NpmHomeProperty)" Condition="'$(NpmHomeTemp)' == ''">
+    <CreateProperty Value="$(NpmHome)-temp">
+      <Output PropertyName="NpmHomeTemp" TaskParameter="Value" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="NpmDownloadUrlProperty" Condition="'$(NpmDownloadUrl)' == ''">
+    <CreateProperty Value="$([System.String]::Format('$(NpmDownloadUrlBase)', '$(NpmVersion)'))">
+      <Output PropertyName="NpmDownloadUrl" TaskParameter="Value" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="NpmCliJsFilePathProperty" DependsOnTargets="NpmHomeProperty">
+    <CreateProperty Value="$(NpmHome)\bin\npm-cli.js">
+      <Output PropertyName="NpmCliJsFilePath" TaskParameter="Value" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="DownloadNpmZip"
+      DependsOnTargets="NpmDownloadUrlProperty;NpmHomeProperty;NpmHomeTempProperty;NpmCliJsFilePathProperty">
+    <Message Importance="high" Text="Downloading and setting up npm, please wait..." />
+    <RemoveDir Directories="$(NpmHomeTemp)" />
+    <MakeDir Directories="$(NpmHomeTemp)" />
+    <Exec Command="powershell -Command Invoke-WebRequest &quot;$(NpmDownloadUrl)&quot; -OutFile &quot;$(NpmHomeTemp)\npm.zip&quot;" />
+    <Exec Command="powershell -Command Expand-Archive &quot;$(NpmHomeTemp)\npm.zip&quot; &quot;$(NpmHomeTemp)\npm.unzipped&quot;" />
+    <RemoveDir Directories="$(NpmHome)" />
+    <Exec Command="powershell -Command Move-Item &quot;$(NpmHomeTemp)\npm.unzipped\npm-$(NpmVersion)&quot; &quot;$(NpmHome)&quot;" />
+    <RemoveDir Directories="$(NpmHomeTemp)" />
+  </Target>
+
+  <Target Name="NpmCliJsFile" DependsOnTargets="NpmCliJsFilePathProperty">
+    <CallTarget Targets="DownloadNpmZip" Condition="!Exists('$(NpmCliJsFilePath)')" />
+  </Target>
+
+  <Target Name="SetupNpm" DependsOnTargets="SetupNode;NpmCliJsFile">
+    <CreateProperty Value="$(NodeCommand) &quot;$(NpmCliJsFilePath)&quot;">
+      <Output PropertyName="NpmCommand" TaskParameter="Value" />
+    </CreateProperty>
+    <CreateProperty Value="$(NodeCommandWithNodePathSetting) &quot;$(NpmCliJsFilePath)&quot;">
+      <Output PropertyName="NpmCommandWithNodePathSetting" TaskParameter="Value" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="NpmInstall" DependsOnTargets="SetupNode">
+    <Message Importance="high" Text="`npm install`" />
+    <Exec Command="$(NpmCommandWithNodePathSetting) install" />
+  </Target>
+  
+  <Target Name="NpmBuildSkip">
+    <Message Importance="high" Text="Skipping `npm run-script build` because `build` script is not defined in your `package.json`" />
+  </Target>
+  
+  <Target Name="NpmBuildExec">
+    <Message Importance="high" Text="`npm run-script build`" />
+    <Exec Command="$(NpmCommandWithNodePathSetting) run-script build" />
+  </Target>
+
+  <Target Name="NpmBuild" DependsOnTargets="SetupNode;NpmInstall">
+    <Exec Command="$(NpmCommandWithNodePathSetting) run-script" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="AvailableTasks" />
+    </Exec>
+    <PropertyGroup>
+      <DoBuild>false</DoBuild>
+      <DoBuild Condition="$(AvailableTasks.Contains(';build;'))">true</DoBuild>
+    </PropertyGroup>
+    <CallTarget Targets="NpmBuildExec" Condition="$(DoBuild)" />
+    <CallTarget Targets="NpmBuildSkip" Condition="!$(DoBuild)" />
+  </Target>
+</Project>

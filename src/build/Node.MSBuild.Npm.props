@@ -1,0 +1,13 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <NpmVersion Condition="'$(NpmVersion)' == ''"
+      >3.5.2</NpmVersion>
+    <NpmHomeBase Condition="'$(NpmHomeBase)' == ''"
+      >$(USERPROFILE)\.node-msbuild\npm-{0}</NpmHomeBase>
+    <NpmDownloadUrlBase Condition="'$(NpmDownloadUrlBase)' == ''"
+      >https://github.com/npm/npm/archive/v{0}.zip</NpmDownloadUrlBase>
+
+    <NpmHome Condition="'$(NpmHome)' == ''"></NpmHome>
+    <NpmDownloadUrl Condition="'$(NpmDownloadUrl)' == ''"></NpmDownloadUrl>
+  </PropertyGroup>
+</Project>

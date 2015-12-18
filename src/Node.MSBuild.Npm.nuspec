@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Node.MSBuild.Npm</id>
+    <title>Node.MSBuild.Npm</title>
+    <version>1.0.0</version>
+    <authors>Yu Nobuoka</authors>
+    <owners>Yu Nobuoka</owners>
+    <licenseUrl>https://raw.githubusercontent.com/nobuoka/Node.MSBuild.Npm/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/nobuoka/Node.MSBuild.Npm</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Nuget package that provides MSBuild targets to setup npm, to execute `npm install`, and to execute `npm run-script build`.</description>
+    <releaseNotes>First release. It will set up npm 3.5.3 by default. The version of npm to set up can be changed.</releaseNotes>
+    <copyright>Copyright 2015 Yu Nobuoka</copyright>
+    <tags>JavaScript JS Node.js Node npm MSBuild</tags>
+    <dependencies>
+      <dependency id="Node.MSBuild" version="1.0.2" />
+    </dependencies>
+  </metadata>
+</package>
