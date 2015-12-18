@@ -60,7 +60,7 @@
     </CreateProperty>
   </Target>
 
-  <Target Name="NpmInstall" DependsOnTargets="SetupNode">
+  <Target Name="NpmInstall" DependsOnTargets="SetupNpm">
     <Message Importance="high" Text="`npm install`" />
     <Exec Command="$(NpmCommandWithNodePathSetting) install" />
   </Target>
